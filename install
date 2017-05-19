@@ -1,7 +1,8 @@
 #!/bin/bash
 
-pip3 install pika elasticsearch
+set -ex
 
+pip3 install pika elasticsearch
 cp post-metrics /bin
 cp post-metrics.service post-metrics.timer /etc/systemd/system
 systemctl enable --now post-metrics.timer
