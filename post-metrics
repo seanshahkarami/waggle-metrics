@@ -12,9 +12,6 @@ metrics = {}
 with open('/sys/class/efuse/mac') as f:
     metrics['node_id'] = f.readline().strip().replace(':', '')
 
-# with open('/sys/class/efuse/usid', 'rb') as f:
-#     metrics['usid'] = f.read()[:16].decode()
-
 with open('/proc/loadavg') as f:
     fields = f.readline().split()
     metrics['load_1'] = float(fields[0])
@@ -35,6 +32,9 @@ with open('/proc/meminfo') as f:
     metrics['mem_total'] = fields['MemTotal']
     metrics['mem_free'] = fields['MemFree']
     metrics['mem_free_ratio'] = fields['MemFree'] / fields['MemTotal']
+
+with open('/sys/class/thermal/thermal_zone0/temp') as f:
+    metrics['cpu_temp'] = float(f.read()) / 1000
 
 with open('/proc/mounts') as f:
     match = re.search('/dev/(.*)p2 / ', f.read())
