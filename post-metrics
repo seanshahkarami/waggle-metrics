@@ -6,6 +6,9 @@ from datetime import datetime
 import json
 import ssl
 import subprocess
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 metrics = {}
 
