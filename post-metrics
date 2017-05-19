@@ -4,7 +4,6 @@ import os.path
 import pika
 from datetime import datetime
 import json
-from urllib.parse import urlencode
 import ssl
 import subprocess
 
@@ -66,19 +65,23 @@ except:
 now = datetime.now()
 metrics['@timestamp'] = now.strftime('%Y/%m/%d %H:%M:%S')
 
-url = 'amqps://node:waggle@beehive1.mcs.anl.gov:23181?{}'.format(urlencode({
-    'ssl': 't',
-    'ssl_options': {
-        'certfile': '/usr/lib/waggle/SSL/node/cert.pem',
-        'keyfile': '/usr/lib/waggle/SSL/node/key.pem',
-        'ca_certs': '/usr/lib/waggle/SSL/waggleca/cacert.pem',
-        'cert_reqs': ssl.CERT_REQUIRED,
-    }
-}))
+ssl_options = {
+    'certfile': '/usr/lib/waggle/SSL/node/cert.pem',
+    'keyfile': '/usr/lib/waggle/SSL/node/key.pem',
+    'ca_certs': '/usr/lib/waggle/SSL/waggleca/cacert.pem',
+    'cert_reqs': ssl.CERT_REQUIRED,
+}
 
-params = pika.URLParameters(url)
+credentials = pika.PlainCredentials('node', 'waggle')
 
-connection = pika.BlockingConnection(params)
+parameters = pika.ConnectionParameters(host='beehive1.mcs.anl.gov',
+                                       port=23181,
+                                       credentials=credentials,
+                                       ssl=True,
+                                       ssl_options=ssl_options)
+
+connection = pika.BlockingConnection(parameters)
+
 channel = connection.channel()
 
 channel.basic_publish(exchange='metrics',
