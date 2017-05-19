@@ -6,6 +6,7 @@ from datetime import datetime
 import json
 from urllib.parse import urlencode
 import ssl
+import subprocess
 
 metrics = {}
 
@@ -54,6 +55,13 @@ devices = [
 ]
 
 metrics['devices'] = [name for name, path in devices if os.path.exists(path)]
+
+try:
+    s = subprocess.check_output('mmcli -m 0')
+    m = re.search("signal quality: '([0-9]+)'", s)
+    metrics['modem_signal'] = float(m.group(1))
+except:
+    pass
 
 now = datetime.now()
 metrics['@timestamp'] = now.strftime('%Y/%m/%d %H:%M:%S')
