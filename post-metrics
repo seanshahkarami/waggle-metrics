@@ -78,7 +78,9 @@ parameters = pika.ConnectionParameters(host='beehive1.mcs.anl.gov',
                                        port=23181,
                                        credentials=credentials,
                                        ssl=True,
-                                       ssl_options=ssl_options)
+                                       ssl_options=ssl_options,
+                                       connection_attempts=5,
+                                       retry_delay=10)
 
 connection = pika.BlockingConnection(parameters)
 
