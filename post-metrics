@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+import re
+import os.path
+import pika
+from datetime import datetime
+import json
+from urllib.parse import urlencode
+import ssl
+
+metrics = {}
+
+with open('/sys/class/efuse/mac') as f:
+    metrics['node_id'] = f.readline().strip().replace(':', '')
+
+# with open('/sys/class/efuse/usid', 'rb') as f:
+#     metrics['usid'] = f.read()[:16].decode()
+
+with open('/proc/loadavg') as f:
+    fields = f.readline().split()
+    metrics['load_1'] = float(fields[0])
+    metrics['load_5'] = float(fields[1])
+    metrics['load_10'] = float(fields[2])
+
+with open('/proc/uptime') as f:
+    fields = f.readline().split()
+    metrics['uptime'] = float(fields[0])
+    metrics['idletime'] = float(fields[1])
+
+with open('/proc/meminfo') as f:
+    fields = {}
+
+    for k, v in re.findall('(.*):\s*(\d+) kB', f.read()):
+        fields[k] = int(v) * 1024
+
+    metrics['mem_total'] = fields['MemTotal']
+    metrics['mem_free'] = fields['MemFree']
+    metrics['mem_free_ratio'] = fields['MemFree'] / fields['MemTotal']
+
+with open('/proc/mounts') as f:
+    match = re.search('/dev/(.*)p2 / ', f.read())
+    disk = match.group(1)
+
+with open(os.path.join('/sys/block', disk, 'device/type')) as f:
+    if 'SD' in f.readline():
+        metrics['media'] = 'sd'
+    else:
+        metrics['media'] = 'emmc'
+
+devices = [
+    ('wagman', '/dev/waggle_sysmon'),
+    ('coresense', '/dev/waggle_coresense'),
+    ('alphasense', '/dev/alphasense'),
+    ('modem', '/dev/attwan'),
+]
+
+metrics['devices'] = [name for name, path in devices if os.path.exists(path)]
+
+now = datetime.now()
+metrics['@timestamp'] = now.strftime('%Y/%m/%d %H:%M:%S')
+
+url = 'amqps://node:waggle@beehive1.mcs.anl.gov:23181?{}'.format(urlencode({
+    'ssl': 't',
+    'ssl_options': {
+        'certfile': '/usr/lib/waggle/SSL/node/cert.pem',
+        'keyfile': '/usr/lib/waggle/SSL/node/key.pem',
+        'ca_certs': '/usr/lib/waggle/SSL/waggleca/cacert.pem',
+        'cert_reqs': ssl.CERT_REQUIRED,
+    }
+}))
+
+params = pika.URLParameters(url)
+
+connection = pika.BlockingConnection(params)
+channel = connection.channel()
+
+channel.basic_publish(exchange='metrics',
+                      routing_key='',
+                      body=json.dumps(metrics))
