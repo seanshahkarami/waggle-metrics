@@ -58,9 +58,9 @@ try:
         fields = line.split()
         mounts[fields[-1]] = {
             'path': fields[0],
-            'total': float(fields[1]) * 1024,
-            'used': float(fields[2]) * 1024,
-            'free': float(fields[3]) * 1024,
+            'total': int(fields[1]) * 1024,
+            'used': int(fields[2]) * 1024,
+            'free': int(fields[3]) * 1024,
             'free_ratio': float(fields[3]) / float(fields[1]),
         }
 
