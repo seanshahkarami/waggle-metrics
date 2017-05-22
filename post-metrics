@@ -59,7 +59,7 @@ devices = [
 metrics['devices'] = [name for name, path in devices if os.path.exists(path)]
 
 try:
-    s = subprocess.check_output('/usr/bin/mmcli -m 0').decode()
+    s = subprocess.check_output(['/usr/bin/mmcli', '-m', '0']).decode()
     m = re.search("signal quality:.*([0-9]+)", s, re.I)
     metrics['modem_signal'] = float(m.group(1))
 except Exception as e:
