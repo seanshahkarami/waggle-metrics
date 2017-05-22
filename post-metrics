@@ -49,6 +49,27 @@ with open(os.path.join('/sys/block', disk, 'device/type')) as f:
     else:
         metrics['media'] = 'emmc'
 
+try:
+    mounts = {}
+
+    output = subprocess.check_output('df').decode()
+
+    for line in output.splitlines()[1:]:
+        fields = line.split()
+        mounts[fields[-1]] = {
+            'path': fields[0],
+            'total': float(fields[1]) * 1024,
+            'used': float(fields[2]) * 1024,
+            'free': float(fields[3]) * 1024,
+            'free_ratio': float(fields[3]) / float(fields[1]),
+        }
+
+    metrics['media_total'] = mounts['/']['total']
+    metrics['media_free'] = mounts['/']['free']
+    metrics['media_free_ratio'] = mounts['/']['free_ratio']
+except Exception as e:
+    logging.error(str(e))
+
 devices = [
     ('wagman', '/dev/waggle_sysmon'),
     ('coresense', '/dev/waggle_coresense'),
