@@ -68,6 +68,8 @@ except Exception as e:
 now = datetime.now()
 metrics['@timestamp'] = now.strftime('%Y/%m/%d %H:%M:%S')
 
+logging.debug('posting {}'.format(json.dumps(metrics)))
+
 ssl_options = {
     'certfile': '/usr/lib/waggle/SSL/node/cert.pem',
     'keyfile': '/usr/lib/waggle/SSL/node/key.pem',
