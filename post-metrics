@@ -8,12 +8,14 @@ import ssl
 import subprocess
 import logging
 
+
 logging.basicConfig(level=logging.DEBUG)
 
 metrics = {}
 
-with open('/sys/class/efuse/mac') as f:
-    metrics['node_id'] = f.readline().strip().replace(':', '')
+output = subprocess.check_output('ip l')
+mac = re.search('00:1e:06:\S*', output).group()
+metrics['node_id'] = mac.replace(':', '')
 
 with open('/proc/loadavg') as f:
     fields = f.readline().split()
