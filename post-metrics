@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 metrics = {}
 
-output = subprocess.check_output(['ip', 'l'])
+output = subprocess.check_output(['ip', 'l']).decode()
 mac = re.search('00:1e:06:\S*', output).group()
 metrics['node_id'] = mac.replace(':', '')
 
