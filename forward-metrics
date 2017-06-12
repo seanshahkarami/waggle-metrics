@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+import pika
+import json
+from datetime import datetime
+import elasticsearch
+import ssl
+
+ssl_options = {
+    'certfile': '/Users/Sean/waggle-sensor/metrics/ssl/cert.pem',
+    'keyfile': '/Users/Sean/waggle-sensor/metrics/ssl/key.pem',
+    'ca_certs': '/Users/Sean/waggle-sensor/metrics/ssl/ca.pem',
+    'cert_reqs': ssl.CERT_REQUIRED,
+}
+
+credentials = pika.PlainCredentials('node', 'waggle')
+
+parameters = pika.ConnectionParameters(host='beehive1.mcs.anl.gov',
+                                       port=23181,
+                                       credentials=credentials,
+                                       ssl=True,
+                                       ssl_options=ssl_options)
+
+connection = pika.BlockingConnection(parameters)
+
+channel = connection.channel()
+
+es = elasticsearch.Elasticsearch()
+
+
+def callback(ch, method, properties, body):
+    body = json.loads(body.decode())
+
+    print(body)
+
+    if body.get('node_id', None):
+        ts = datetime.strptime(body['@timestamp'], '%Y/%m/%d %H:%M:%S')
+
+        es.index(index=ts.strftime('metric-%Y.%m.%d'),
+                 doc_type='system',
+                 body=body)
+
+    channel.basic_ack(delivery_tag=method.delivery_tag)
+
+
+channel.basic_qos(prefetch_count=1)
+channel.basic_consume(callback, queue='metrics')
+channel.start_consuming()
