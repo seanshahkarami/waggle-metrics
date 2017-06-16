@@ -94,9 +94,9 @@ metrics['@timestamp'] = now.strftime('%Y/%m/%d %H:%M:%S')
 logging.debug('posting {}'.format(json.dumps(metrics)))
 
 ssl_options = {
+    'ca_certs': '/usr/lib/waggle/SSL/waggleca/cacert.pem',
     'certfile': '/usr/lib/waggle/SSL/node/cert.pem',
     'keyfile': '/usr/lib/waggle/SSL/node/key.pem',
-    'ca_certs': '/usr/lib/waggle/SSL/waggleca/cacert.pem',
     'cert_reqs': ssl.CERT_REQUIRED,
 }
 
