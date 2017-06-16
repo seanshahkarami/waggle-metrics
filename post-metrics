@@ -100,7 +100,8 @@ ssl_options = {
     'cert_reqs': ssl.CERT_REQUIRED,
 }
 
-credentials = pika.PlainCredentials('node', 'waggle')
+credentials = pika.PlainCredentials(username='node',
+                                    password='waggle')
 
 parameters = pika.ConnectionParameters(host='beehive1.mcs.anl.gov',
                                        port=23181,
