@@ -110,7 +110,7 @@ parameters = pika.ConnectionParameters(host='beehive1.mcs.anl.gov',
                                        ssl_options=ssl_options,
                                        connection_attempts=3,
                                        retry_delay=10,
-                                       socket_timeout=10)
+                                       socket_timeout=20)
 
 connection = pika.BlockingConnection(parameters)
 
