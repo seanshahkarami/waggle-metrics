@@ -1,0 +1,24 @@
+---
+- hosts: metrics
+  gather_facts: no
+  tasks:
+    - name: Disable timer
+      systemd:
+        name: post-metrics.timer
+        state: stopped
+        enabled: False
+
+    - name: Remove script
+      file:
+        src: /bin/post-metrics
+        state: absent
+
+    - name: Remove service file
+      copy:
+        src: /etc/systemd/system/post-metrics.service
+        state: absent
+
+    - name: Remove timer file
+      copy:
+        src: /etc/systemd/system/post-metrics.timer
+        state: absent

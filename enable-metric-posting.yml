@@ -1,0 +1,24 @@
+---
+- hosts: metrics
+  gather_facts: no
+  tasks:
+    - name: Copy script
+      copy:
+        src: post-metrics
+        dest: /bin/post-metrics
+
+    - name: Copy service file
+      copy:
+        src: post-metrics.service
+        dest: /etc/systemd/system/post-metrics.service
+
+    - name: Copy timer file
+      copy:
+        src: post-metrics.timer
+        dest: /etc/systemd/system/post-metrics.timer
+
+    - name: Enable timer
+      systemd:
+        name: post-metrics.timer
+        state: started
+        enabled: True

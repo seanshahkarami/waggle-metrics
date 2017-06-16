@@ -1,8 +1,0 @@
-#!/bin/bash
-
-set -ex
-
-systemctl disable post-metrics.timer
-rm /bin/post-metrics
-rm /etc/systemd/system/post-metrics.service
-rm /etc/systemd/system/post-metrics.timer
