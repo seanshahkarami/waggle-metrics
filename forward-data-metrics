@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+import pika
+import ssl
+import base64
+from datetime import datetime
+import elasticsearch
+
+
+es = elasticsearch.Elasticsearch()
+
+
+def process_message(ch, method, properties, body):
+    received_at = datetime.now()
+
+    if 'node_id' in properties.headers:
+        timestamp = datetime.fromtimestamp(properties.timestamp / 1000)
+        lag = (received_at - timestamp).total_seconds()
+
+        doc = {
+            '@timestamp': timestamp.strftime('%Y/%m/%d %H:%M:%S'),
+            'lag': lag,
+            'plugin': properties.app_id,
+            'node_id': properties.headers['node_id'][-12:],
+            'body': base64.b64encode(body).decode()
+        }
+
+        es.index(index='data-metrics', doc_type='plugin', body=doc)
+        print(doc, flush=True)
+
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+parameters = pika.ConnectionParameters(
+    host='beehive1.mcs.anl.gov',
+    port=23181,
+    credentials=pika.PlainCredentials('node', 'waggle'),
+    ssl=True,
+    ssl_options={
+        'certfile': '/Users/Sean/waggle-sensor/metrics/ssl/cert.pem',
+        'keyfile': '/Users/Sean/waggle-sensor/metrics/ssl/key.pem',
+        'ca_certs': '/Users/Sean/waggle-sensor/metrics/ssl/ca.pem',
+        'cert_reqs': ssl.CERT_REQUIRED,
+    })
+
+connection = pika.BlockingConnection(parameters)
+
+channel = connection.channel()
+
+queue = 'data-metrics'
+channel.queue_declare(queue=queue)
+channel.queue_bind(queue=queue, exchange='data-pipeline-in')
+
+channel.basic_consume(process_message, queue=queue)
+channel.start_consuming()

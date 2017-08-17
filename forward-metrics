@@ -28,16 +28,20 @@ es = elasticsearch.Elasticsearch()
 
 
 def callback(ch, method, properties, body):
-    body = json.loads(body.decode())
+    received_at = datetime.utcnow()
 
-    print(body)
+    body = json.loads(body.decode())
 
     if body.get('node_id', None):
         ts = datetime.strptime(body['@timestamp'], '%Y/%m/%d %H:%M:%S')
 
+        body['lag'] = (received_at - ts).total_seconds()
+
         es.index(index=ts.strftime('metric-%Y.%m.%d'),
                  doc_type='system',
                  body=body)
+
+    print(body)
 
     channel.basic_ack(delivery_tag=method.delivery_tag)
 
