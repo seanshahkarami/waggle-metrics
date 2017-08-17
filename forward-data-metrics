@@ -24,7 +24,10 @@ def process_message(ch, method, properties, body):
             'body': base64.b64encode(body).decode()
         }
 
-        es.index(index='data-metrics', doc_type='plugin', body=doc)
+        es.index(index=timestamp.strftime('data-metric-%Y.%m.%d'),
+                 doc_type='plugin',
+                 body=doc)
+
         print(doc, flush=True)
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
