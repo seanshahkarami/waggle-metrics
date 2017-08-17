@@ -1,0 +1,12 @@
+[Unit]
+Description=Forward node system metrics to Elasticsearch
+
+[Service]
+ExecStart=/root/waggle-metrics/forward-metrics
+WorkingDirectory=/root/waggle-metrics
+
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
