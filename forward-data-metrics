@@ -10,10 +10,10 @@ es = elasticsearch.Elasticsearch()
 
 
 def process_message(ch, method, properties, body):
-    received_at = datetime.now()
+    received_at = datetime.utcnow()
 
     if 'node_id' in properties.headers:
-        timestamp = datetime.fromtimestamp(properties.timestamp / 1000)
+        timestamp = datetime.utcfromtimestamp(properties.timestamp / 1000)
         lag = (received_at - timestamp).total_seconds()
 
         doc = {
@@ -46,7 +46,6 @@ parameters = pika.ConnectionParameters(
     })
 
 connection = pika.BlockingConnection(parameters)
-
 channel = connection.channel()
 
 queue = 'data-metrics'
